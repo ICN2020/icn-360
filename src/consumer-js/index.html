@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>icn-360 Javascript Consumer</title>
+        <meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+            body {
+                background-color: #000000;
+                margin: 0px;
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+            }
+
+            #surface {
+                visibility: hidden;
+                overflow: hidden;
+                position: absolute;
+                top: 0px;
+                left: 0px;
+            }
+
+            #show-dialog {
+                position: fixed;
+                bottom: 8px;
+                right: 8px;
+            }
+
+            #full-screen {
+                position: fixed;
+                top: 8px;
+                right: 8px;
+            }
+            #device-orientation {
+                position: fixed;
+                top: 8px;
+                left: 8px;
+            }
+
+            #status-field {
+                visibility: hidden;
+                position: fixed;
+                bottom: 8px;
+                left: 40px;
+            }
+            #show-status {
+                position: fixed;
+                bottom: 8px;
+                left:　8px;
+            }
+            .bx-color:before{
+                color: gray;
+            }
+
+            .mdl-button i {
+                color: rgba(255,255,255,0.7);
+            }
+        </style>
+
+        <!-- UI -->
+        <link rel="stylesheet" href="libs/material.min.css">
+        <link rel="stylesheet" href="libs/dialog-polyfill.css">
+        <link rel="stylesheet" href="libs/material-icons.css">
+        <script type="text/javascript" src="libs/material.min.js"></script>
+        <script type="text/javascript" src="libs/dialog-polyfill.js"></script>
+
+        <!-- three.js uses File API's Blob, thus load before ndn.js -->
+        <script type="text/javascript" src="libs/three.min.js"></script>
+        <script type="text/javascript" src="libs/OrbitControls.js"></script>
+        <script type="text/javascript" src="libs/DeviceOrientationControls.js"></script>
+        <script type="text/javascript" src="libs/StereoEffect.js"></script>
+        <script type="text/javascript" src="js/fieldofview.js"></script>
+        <script type="text/javascript" src="js/panorama.js"></script>
+        <script type="text/javascript">
+            // evacuate Blob, since ndn.js overwrite Blob on File API (HTML5)
+            var FileBlob = Blob;
+        </script>
+        <script type="text/javascript" src="libs/ndn.min.js"></script>
+        
+        <!-- icn-360 -->
+        <script type="text/javascript" src="js/parameters.js"></script>
+        <script type="text/javascript" src="js/fixedratedownloader.js"></script>
+        <script type="text/javascript" src="js/framedownloader.js"></script>
+        <script type="text/javascript" src="js/consumer.js"></script>
+        <script type="text/javascript" src="js/rtt-statistics.js"></script>
+
+        <script type="text/javascript">
+            window.addEventListener('load', function() {
+                var fov = new FieldOfView();
+                var panorama = new PanoramaView('container', fov, consumer);
+                panorama.animate();
+                var consumer = new Consumer(location.hostname, 9696, fov, panorama.getSurface());
+                consumer.updateMetaData();
+                consumer.downloadImagedata();
+                panorama.setConsumer(consumer);
+                
+                document.querySelector('#full-screen').addEventListener('click', function(){
+                    if (!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullscreenElement || document.msFullscreenElement)) {
+                        if(document.documentElement.requestFullscreen){
+                            document.documentElement.requestFullscreen();
+                        }else if(document.documentElement.webkitRequestFullscreen){
+                            document.documentElement.webkitRequestFullscreen();
+                        }else if(document.documentElement.mozRequestFullscreen){
+                            document.documentElement.mozRequestFullscreen();
+                        }else if(document.documentElement.msRequestFullscreen){
+                            document.documentElement.msRequestFullscreen();
+                        }
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen(); 
+                        }else if(document.webkitExitFullscreen){
+                            document.webkitExitFullscreen();
+                        }else if(document.mozCancelFullscreen){
+                            document.mozCancelFullscreen();
+                        }else if(document.msExitFullscreen){
+                            document.msExitFullscreen();
+                        }
+                    }
+                });
+
+                document.querySelector('#device-orientation').addEventListener('click', function(){
+                    Parameters.DEVICE_ORIENTATION = !(Parameters.DEVICE_ORIENTATION)
+                    panorama.initControl();
+                });
+
+                var dialog = document.querySelector('dialog');
+                var showDialogButton = document.querySelector('#show-dialog');
+                if (!dialog.showModal) {
+                    dialogPolyfill.registerDialog(dialog);
+                }
+                showDialogButton.addEventListener('click', function() {
+                    dialog.showModal();
+                });
+                dialog.querySelector('.close').addEventListener('click', function() {
+                    dialog.close();
+                });
+                document.querySelector('#switch-http').addEventListener('click', function() {
+                    Parameters.HTTP_MODE = document.querySelector('#switch-http').checked;
+                });
+                document.querySelector('#switch-grid').addEventListener('click', function() {
+                    Parameters.SHOW_GRID = document.querySelector('#switch-grid').checked;
+                });
+                document.querySelector('#switch-edge').addEventListener('click', function() {
+                    Parameters.EDGE_MARK = document.querySelector('#switch-edge').checked;
+                });
+                document.querySelector('#switch-vr').addEventListener('click', function() {
+                    Parameters.VR_MODE = document.querySelector('#switch-vr').checked;
+                });
+                var statusField = document.querySelector('status-field');
+                var showStatusButton = document.querySelector('#show-status');
+                showStatusButton.addEventListener('click', function() {
+                    if (document.getElementById('status-field').style.visibility == "visible") {
+                        document.getElementById('status-field').style.visibility = "hidden";
+                    }
+                    else {
+                        document.getElementById('status-field').style.visibility = "visible";
+                    }
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+        <div id="container"></div>
+        <button id="full-screen" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">fullscreen</i></button>
+        <button id="device-orientation" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">3d_rotation</i></button>
+        <button id="show-status" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">info</i></button>
+        <button id="show-dialog" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">settings_applications</i></button>
+        
+        <dialog class="mdl-dialog">
+            <div class="mdl-dialog__content">
+                <div class="mdl-list">
+                    <div class="mdl-list__item">
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-http">
+                            <input type="checkbox" id="switch-http" class="mdl-switch__input">
+                            <span class="mdl-switch__label">HTTP Mode</span>
+                        </label>
+                    </div>
+                    <div class="mdl-list__item">
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-grid">
+                            <input type="checkbox" id="switch-grid" class="mdl-switch__input">
+                            <span class="mdl-switch__label">Show Grid</span>
+                        </label>
+                    </div>
+                    <div class="mdl-list__item">
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-edge">
+                            <input type="checkbox" id="switch-edge" class="mdl-switch__input" checked>
+                            <span class="mdl-switch__label">Enable Edge</span>
+                        </label>
+                    </div>
+                    <div class="mdl-list__item">
+                        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-vr">
+                            <input type="checkbox" id="switch-vr" class="mdl-switch__input">
+                            <span class="mdl-switch__label">VR Mode</span>
+                        </label>
+                    </div>  
+                </div>
+            </div>
+    
+            <div class="mdl-dialog__actions">
+                <button type="button" class="mdl-button close">Close</button>
+            </div>
+        </dialog>
+        <div class="mdl-textfield mdl-js-textfield" id="status-field">
+            ---- icn-360 statistics ----
+            <div id="i360-status"></div>
+        </div>
+        <script>
+        
+        </script>
+    </body>
+</html>
