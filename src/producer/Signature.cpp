@@ -43,11 +43,6 @@ Signature::Signature(const char* prefix)
         signature_info_ = ndn::security::signingByKey(key_);
     }else if(sign_type_ == SignatureType::SHA_256){
         signature_info_ = ndn::security::signingWithSha256();
-    }else if(sign_type_ == SignatureType::HMAC_SHA_256){
-        signature_info_ = ndn::security::signingWithSha256();
-        auto sig_info = signature_info_.getSignatureInfo();
-        sig_info.setSignatureType(ndn::tlv::SignatureHmacWithSha256);
-        signature_info_.setSignatureInfo(sig_info);
     }
 }
 
@@ -68,8 +63,6 @@ Signature::sign(ndn::Data& data)
     // Digest
     if(sign_type_ == SignatureType::NO_SIGN){
         return;
-    }else if(sign_type_ == SignatureType::HMAC_SHA_256){
-        signWithHmac(data);
     }else{
         key_chain_.sign(data, signature_info_);
     }

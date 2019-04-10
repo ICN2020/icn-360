@@ -138,8 +138,7 @@ SignatureType::signatureFromKey(std::string key)
         {"RSA_2048", RSA_2048},
         {"ECDSA_224", ECDSA_224},
         {"ECDSA_256", ECDSA_256},
-        {"ECDSA_384", ECDSA_384},
-        {"HMAC", HMAC_SHA_256}
+        {"ECDSA_384", ECDSA_384}
     };
     auto it = signatureName.find(key);
     if(it != signatureName.end()){
