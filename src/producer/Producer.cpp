@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <string>
+#include <ndn-cxx/version.hpp>
 #include <ndn-cxx/util/time.hpp>
 #include <cereal/archives/json.hpp>
 #include <cryptopp/randpool.h>
@@ -123,7 +124,11 @@ Producer::sendMetaData(const ndn::Name& name)
   std::shared_ptr<ndn::Data> data = std::make_shared<ndn::Data>();
   data->setName(name);
   data->setFreshnessPeriod(ndn::time::milliseconds(0));
+#if NDN_CXX_VERSION > 6002
   data->setFinalBlock(ndn::name::Component::fromSegment(0));
+#else
+  data->setFinalBlockId(ndn::name::Component::fromSegment(0));
+#endif
   const std::string content = ss.str();
   data->setContent(reinterpret_cast<const uint8_t*>(content.c_str()), content.size());
 
@@ -149,7 +154,11 @@ Producer::sendStatusData(const ndn::Name& name)
   std::shared_ptr<ndn::Data> data = std::make_shared<ndn::Data>();
   data->setName(name);
   data->setFreshnessPeriod(ndn::time::milliseconds(0));
+#if NDN_CXX_VERSION > 6002
   data->setFinalBlock(ndn::name::Component::fromSegment(0));
+#else
+  data->setFinalBlockId(ndn::name::Component::fromSegment(0));
+#endif
   const std::string content = ss.str();
   data->setContent(reinterpret_cast<const uint8_t*>(content.c_str()), content.size());
 
@@ -205,7 +214,11 @@ Producer::sendImageData(const ndn::Name& name)
   auto data = std::make_shared<ndn::Data>();
   data->setName(name);
   data->setFreshnessPeriod(ndn::time::milliseconds(metadata.fiv * 10));
+#if NDN_CXX_VERSION > 6002
   data->setFinalBlock(ndn::name::Component::fromSegment(image->finalSegmentNo()));  
+#else
+  data->setFinalBlockId(ndn::name::Component::fromSegment(image->finalSegmentNo()));  
+#endif
   data->setContent(segment->data(), segment->size());
 
   signature_.sign(*data);
