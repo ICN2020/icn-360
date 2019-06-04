@@ -32,6 +32,8 @@ Consumer = function(hostname, port, field_of_view, surface){
 
     this.animation_rate = 0;
     this.is_video_tile = false;
+
+    Interest.setDefaultCanBePrefix(true);
 }
 
 Consumer.prototype.updateMetaData = function(){
