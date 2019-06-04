@@ -11,7 +11,7 @@ curl -O https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/js/effect
 curl -O https://code.getmdl.io/1.3.0/mdl.zip
 unzip mdl.zip
 # dialog
-curl -O https://raw.githubusercontent.com/GoogleChrome/dialog-polyfill/master/dialog-polyfill.js
+curl -O https://raw.githubusercontent.com/GoogleChrome/dialog-polyfill/master/dist/dialog-polyfill.js
 curl -O https://raw.githubusercontent.com/GoogleChrome/dialog-polyfill/master/dialog-polyfill.css
 
 # box-icons
