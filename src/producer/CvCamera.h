@@ -29,6 +29,7 @@ private:
     std::thread thr_;
     uint32_t frame_interval_;
     bool run_;
+    bool is_file_;
 
     std::deque<std::shared_ptr<CapturedFrame>> frame_queue_;
     std::mutex mtx_;

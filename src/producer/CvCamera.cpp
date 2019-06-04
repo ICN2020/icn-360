@@ -20,7 +20,8 @@ CvCamera::CvCamera()
     : camera_(),
       frame_(),
       frame_interval_(),
-      run_(false)
+      run_(false),
+      is_file_(false)
 {
 }
 
@@ -62,14 +63,18 @@ CvCamera::capture()
     bool is_loop = (frame_count > 0) &&  ParametersProducer::isLoop();
 
     std::shared_ptr<CapturedFrame> captured_frame;
+    
+    auto frame_time = std::chrono::system_clock::now() + std::chrono::milliseconds(ParametersProducer::videoSegmentSize());
     while (run_) {
+        auto start = std::chrono::system_clock::now();
         if (camera_.grab())
         {
             frame_.release();
             camera_.retrieve(frame_);
             
             if(captured_frame.get() == nullptr ||
-                captured_frame->elapsedTime() > ParametersProducer::videoSegmentSize()){
+                std::chrono::system_clock::now() >= frame_time){
+  
                 if(captured_frame.get() != nullptr){
                     std::lock_guard<std::mutex> locker(mtx_);
                     while(frame_queue_.size() >= FRAME_BUFFER_LENGTH){
@@ -77,9 +82,19 @@ CvCamera::capture()
                     }
                     frame_queue_.push_front(captured_frame);
                 }
+                frame_time = frame_time + std::chrono::milliseconds(ParametersProducer::videoSegmentSize());
                 captured_frame = std::make_shared<CapturedFrame>(width_, height_);
             }
             captured_frame->append(frame_);
+            
+            if(is_file_){
+                auto end = std::chrono::system_clock::now();
+                uint32_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+                if(frame_interval_ > elapsed){
+                    std::this_thread::sleep_for(std::chrono::milliseconds(frame_interval_ - elapsed));
+                }
+            }
+
         } else {
             if(is_loop){
                 //if(static_cast<uint32_t>(camera_.get(CV_CAP_PROP_POS_FRAMES)) == frame_count){
@@ -113,6 +128,7 @@ bool
 CvCamera::open(int device, uint32_t width, uint32_t height, uint32_t fps)
 {
     camera_.open(device);
+    is_file_ = false;
     if (camera_.isOpened() && initCamera(width, height, fps))
         return true;
 
@@ -124,6 +140,7 @@ bool
 CvCamera::open(const std::string &file)
 {
     camera_.open(file);
+    is_file_ = true;
     if (camera_.isOpened() && initCamera(0, 0, 0)) return true;
     
     return false;
