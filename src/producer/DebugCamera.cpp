@@ -33,7 +33,7 @@ DebugCamera::~DebugCamera()
 
 
 void
-DebugCamera::getCamereaMetadata(CameraMetadata& metadata)
+DebugCamera::getCameraMetadata(CameraMetadata& metadata)
 {
     metadata.width = image_.cols;
     metadata.height = image_.rows;

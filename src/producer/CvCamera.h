@@ -48,7 +48,7 @@ public:
     inline uint32_t height() const { return height_; }
     
     std::shared_ptr<CapturedFrame> getCapturedFrame(uint32_t sequenceNo);
-    void getCamereaMetadata(CameraMetadata& metadata);
+    void getCameraMetadata(CameraMetadata& metadata);
 
 private:
     virtual bool initCamera(uint32_t init_width, uint32_t init_height, uint32_t init_fps);

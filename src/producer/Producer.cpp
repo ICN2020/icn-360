@@ -83,23 +83,21 @@ Producer::start()
 
 void
 Producer::onInterest(const ndn::InterestFilter& filter, const ndn::Interest& interest)
-{
-  
-  const ndn::Name& name = interest.getName();
-  interest_queue_.post([this, name]{ this->processInterest(name); });
+{  
+  interest_queue_.post([this, interest]{ this->processInterest(interest); });
 }
 
 
 void
-Producer::processInterest(const ndn::Name& name)
+Producer::processInterest(const ndn::Interest& interest)
 {
-  //std::cout << name.toUri() << std::endl;
+  const ndn::Name& name = interest.getName();
 
   if(meta_data_name_.isPrefixOf(name) == true){
     consumer_counter_.increase();
     sendMetaData(name);
   }else if(img_data_name_.isPrefixOf(name) == true){
-    sendImageData(name);
+    sendImageData(interest);
   }else if(status_data_name_.isPrefixOf(name) == true){
     sendStatusData(name);
   }else{
@@ -112,7 +110,7 @@ Producer::sendMetaData(const ndn::Name& name)
 {
   if (name[NAME_SEGMENT_LOCATION].isSegment() && name[NAME_SEGMENT_LOCATION].toSegment() > 0) return;
   CameraMetadata metadata;
-  camera_.getCamereaMetadata(metadata);
+  camera_.getCameraMetadata(metadata);
   metadata.mui = METADATA_UPDATE_INTERVAL;
 
   std::stringstream ss;
@@ -168,8 +166,10 @@ Producer::sendStatusData(const ndn::Name& name)
 
 
 void
-Producer::sendImageData(const ndn::Name& name)
+Producer::sendImageData(const ndn::Interest& interest)
 {
+  const ndn::Name& name = interest.getName();
+
   if (!name[NAME_COORDINATE_Y_LOCATION].isNumber()) return;
   uint32_t y = name[NAME_COORDINATE_Y_LOCATION].toNumber();
   if (!name[NAME_COORDINATE_X_LOCATION].isNumber()) return;
@@ -182,7 +182,7 @@ Producer::sendImageData(const ndn::Name& name)
   //std::cout << name.to << std::endl;
 
   CameraMetadata metadata;
-  camera_.getCamereaMetadata(metadata);
+  camera_.getCameraMetadata(metadata);
 
   auto frame = camera_.getCapturedFrame(sequence_no);
   if(frame == nullptr){
@@ -195,7 +195,6 @@ Producer::sendImageData(const ndn::Name& name)
   
   auto image = frame->getMediaTile(x, y, low_quality);
   if(frame == nullptr){
-    ndn::Interest interest(name);
     auto nack = ndn::lp::Nack(interest);
     nack.setReason(ndn::lp::NackReason::DUPLICATE);
     face_.put(nack);
@@ -204,7 +203,6 @@ Producer::sendImageData(const ndn::Name& name)
   
   auto segment = image->getSegment(segment_no);
   if(segment == nullptr){
-    ndn::Interest interest(name);
     auto nack = ndn::lp::Nack(interest);
     nack.setReason(ndn::lp::NackReason::NO_ROUTE);
     face_.put(nack);

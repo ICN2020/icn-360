@@ -147,7 +147,7 @@ CvCamera::open(const std::string &file)
 }
 
 void
-CvCamera::getCamereaMetadata(CameraMetadata& metadata)
+CvCamera::getCameraMetadata(CameraMetadata& metadata)
 {
     metadata.width = width_;
     metadata.height = height_;

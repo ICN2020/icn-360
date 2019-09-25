@@ -25,5 +25,5 @@ public:
     virtual ~DebugCamera();
   
     std::shared_ptr<CapturedFrame> getCapturedFrame(uint32_t sequenceNo);
-    void getCamereaMetadata(CameraMetadata& metadata);
+    void getCameraMetadata(CameraMetadata& metadata);
 };

@@ -46,8 +46,8 @@ private:
   
   void onRegisterFailed(const ndn::Name& prefix, const std::string& reason);
   void sendMetaData(const ndn::Name& name);
-  void sendImageData(const ndn::Name& name);
+  void sendImageData(const ndn::Interest& name);
   void sendStatusData(const ndn::Name& name);
   
-  void processInterest(const ndn::Name& name);
+  void processInterest(const ndn::Interest& name);
 };
