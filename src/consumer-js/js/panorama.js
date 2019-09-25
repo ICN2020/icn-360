@@ -10,6 +10,8 @@
 PanoramaView = function(container_id, field_of_view) {
     if(!(this instanceof PanoramaView)){ return new PanoramaView(container_id, canvas_id, field_of_view); }
 
+    this.enableVR = ('xr' in navigator && 'supportsSession' in navigator.xr) || ('getVRDisplays' in navigator);
+
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
     this.camera.target = new THREE.Vector3(0,0,0);
     this.camera.position.set(0,0,0.1);
@@ -22,9 +24,15 @@ PanoramaView = function(container_id, field_of_view) {
     this.effect = new THREE.StereoEffect(this.render);
     let container = document.getElementById(container_id);
     container.appendChild(this.render.domElement);
+    if(this.enableVR){
+        this.render.vr.enabled = true;
+        container.appendChild(THREE.WEBVR.createButton(this.render, {referenceSpaceType:'local'}));
+    }
     this.surface = null;
     this.initScene();
-    this.initControl();
+    if(!this.enableVR){
+        this.initControl();
+    }
     this.start_time = new Date();
 
     this.field_of_view = field_of_view;
@@ -76,7 +84,11 @@ PanoramaView.prototype.setConsumer = function(consumer){
 
 
 PanoramaView.prototype.animate = function(){
-    window.requestAnimationFrame(this.animate.bind(this));
+    if(this.enableVR){
+        this.render.setAnimationLoop(this.animate.bind(this));
+    }else{
+        window.requestAnimationFrame(this.animate.bind(this));
+    }
     this.update();
     this.field_of_view.setAnimationInterval((new Date()) - this.start_time);
     this.start_time = new Date();
@@ -91,8 +103,10 @@ PanoramaView.prototype.update = function(){
            this.effect.render(this.scene, this.camera);
        }else{
           this.render.render(this.scene, this.camera);
-   }
-    this.controls.update();
+    }
+    if(!this.enableVR){
+       this.controls.update();
+    }
     this.field_of_view.calcFieldOfView(500, this.camera);
 }
 

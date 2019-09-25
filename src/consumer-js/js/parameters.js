@@ -21,4 +21,7 @@ Parameters = {
     EDGE_MARK:                  true,
     VR_MODE:                    false,
     DEVICE_ORIENTATION:         true,
+    HMD_FOV:                    120,
+    WINDOW_FOV:                 75,
+
 };

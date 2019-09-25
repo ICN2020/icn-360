@@ -6,6 +6,8 @@
     - three.min.js : /build/
     - OrbitControls.js : /examples/js/controls/
     - DeviceOrientationControls.js : /examples/js/controls/
+    - StereoEffect.js : /examples/js/effects/
+    - WebVR.js : /examples/js/vr/
 - Material Dedign Lite : [https://getmdl.io/started/index.html](https://getmdl.io/started/index.html)
     - material.min.js
     - material.min.js.map
